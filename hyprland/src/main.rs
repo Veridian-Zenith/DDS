@@ -1,6 +1,6 @@
 use common::config::Config;
 use common::constants;
-use common::discord::rpc::DiscordRpc;
+use common::discord::rpc::PresenceHandle;
 use common::logger::Logger;
 use common::rules;
 use std::env;
@@ -25,9 +25,9 @@ fn main() {
 
     Logger::log("Config loaded successfully!");
 
-    let mut rpc = DiscordRpc::new(&config.app_id);
+    let mut rpc = PresenceHandle::new(&config.app_id);
 
-    if let Err(e) = rpc.connect() {
+    if let Err(e) = rpc.open() {
         Logger::log(&format!("Fatal: {}", e));
         process::exit(1);
     }
@@ -37,7 +37,7 @@ fn main() {
     listen_active_window(|class, title| {
         let presence = rules::build_presence(&config, &class, &title, "Hyprland");
 
-        rpc.update(&presence, &title);
+        rpc.push(&presence, &title);
     });
 }
 

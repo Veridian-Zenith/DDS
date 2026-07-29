@@ -2,48 +2,52 @@ use crate::config::RpcRule;
 use crate::logger::Logger;
 use discord_rich_presence::{DiscordIpc, DiscordIpcClient, activity};
 
-pub struct DiscordRpc {
+pub struct PresenceHandle {
     client: DiscordIpcClient,
 }
 
-impl DiscordRpc {
-    pub fn new(client_id: &str) -> Self {
+impl PresenceHandle {
+    pub fn new(id: &str) -> Self {
         Self {
-            client: DiscordIpcClient::new(client_id),
+            client: DiscordIpcClient::new(id),
         }
     }
 
-    pub fn connect(&mut self) -> Result<(), String> {
+    pub fn open(&mut self) -> Result<(), String> {
         self.client
             .connect()
-            .map_err(|e| format!("Failed to connect to Discord: {}", e))
+            .map_err(|e| format!("Discord connection failed: {e}"))
     }
 
-    fn build_activity(rule: &RpcRule) -> activity::Activity<'_> {
+    fn make_activity(rule: &RpcRule) -> activity::Activity<'_> {
         let mut act = activity::Activity::new();
 
-        if let Some(state) = &rule.state {
-            act = act.state(state);
+        if let Some(ref s) = rule.state {
+            act = act.state(s.as_str());
         }
 
-        if let Some(details) = &rule.details {
-            act = act.details(details);
+        if let Some(ref d) = rule.details {
+            act = act.details(d.as_str());
         }
 
-        if rule.large_image.is_some() || rule.small_image.is_some() {
+        if rule.large_image.is_some()
+            || rule.small_image.is_some()
+            || rule.large_text.is_some()
+            || rule.small_text.is_some()
+        {
             let mut assets = activity::Assets::new();
 
-            if let Some(v) = &rule.large_image {
-                assets = assets.large_image(v);
+            if let Some(ref v) = rule.large_image {
+                assets = assets.large_image(v.as_str());
             }
-            if let Some(v) = &rule.large_text {
-                assets = assets.large_text(v);
+            if let Some(ref v) = rule.large_text {
+                assets = assets.large_text(v.as_str());
             }
-            if let Some(v) = &rule.small_image {
-                assets = assets.small_image(v);
+            if let Some(ref v) = rule.small_image {
+                assets = assets.small_image(v.as_str());
             }
-            if let Some(v) = &rule.small_text {
-                assets = assets.small_text(v);
+            if let Some(ref v) = rule.small_text {
+                assets = assets.small_text(v.as_str());
             }
 
             act = act.assets(assets);
@@ -52,32 +56,28 @@ impl DiscordRpc {
         act
     }
 
-    pub fn update(&mut self, rule: &RpcRule, title: &str) {
+    pub fn push(&mut self, rule: &RpcRule, label: &str) {
+        let activity = Self::make_activity(rule);
+
         Logger::log(&format!(
-            "[RPC] class_title={:?}, state={:?}, details={:?}, large_image={:?}, large_text={:?}, small_image={:?}, small_text={:?}",
-            title,
+            "[RPC] window={label} state={:?} details={:?} img_l={:?} txt_l={:?} img_s={:?} txt_s={:?}",
             rule.state,
             rule.details,
             rule.large_image,
             rule.large_text,
             rule.small_image,
-            rule.small_text
+            rule.small_text,
         ));
 
-        let act = Self::build_activity(rule);
-
-        if let Err(e) = self.client.set_activity(act) {
-            Logger::log(&format!(
-                "[RPC] Failed to set activity: {}. Attempting reconnect...",
-                e
-            ));
-            if let Err(re) = self.connect() {
-                Logger::log(&format!("[RPC] Reconnect failed: {}", re));
+        if let Err(e) = self.client.set_activity(activity) {
+            Logger::log(&format!("[RPC] set_activity failed ({e}), reconnecting..."));
+            if let Err(r) = self.open() {
+                Logger::log(&format!("[RPC] reconnect failed: {r}"));
                 return;
             }
-            let act = Self::build_activity(rule);
-            if let Err(e2) = self.client.set_activity(act) {
-                Logger::log(&format!("[RPC] Retry also failed: {}", e2));
+            let retry = Self::make_activity(rule);
+            if let Err(e2) = self.client.set_activity(retry) {
+                Logger::log(&format!("[RPC] retry also failed: {e2}"));
             }
         }
     }

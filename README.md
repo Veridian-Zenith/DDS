@@ -1,7 +1,7 @@
 # `DDS` 
 
 ![Rust](https://img.shields.io/badge/Rust-1.85+-orange?style=for-the-badge\&logo=rust)
-![License MIT](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+![License OSL-3.0](https://img.shields.io/badge/license-OSL--3.0-green?style=for-the-badge)
 ![Platform: Linux](https://img.shields.io/badge/Platform-Linux-blue?style=for-the-badge) 
 ![Desktop](https://img.shields.io/badge/Desktop-Hyprland%20%7C%20COSMIC-purple?style=for-the-badge)
 
@@ -138,4 +138,4 @@ nicely — everything else just works with the raw class name.
 
 ## License
 
-MIT License — see [LICENSE](LICENSE)
+Open Software License 3.0 — see [LICENSE](LICENSE)

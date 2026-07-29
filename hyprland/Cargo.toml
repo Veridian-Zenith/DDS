@@ -3,7 +3,7 @@ name = "ddsh"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
-license-file.workspace = true
+license.workspace = true
 description = "Dynamic Discord Rich Presence based on active Hyprland windows"
 
 [[bin]]

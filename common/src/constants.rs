@@ -1,5 +1,5 @@
 pub const QUALIFIER: &str = "ru";
-pub const ORGANIZATION: &str = "Kazuha046";
+pub const ORGANIZATION: &str = "VeridianZenith";
 
 pub const HYPRLAND_APP_NAME: &str = "Dynamic-DRPC-Hyprland";
 pub const COSMIC_APP_NAME: &str = "Dynamic-DRPC-COSMIC";
